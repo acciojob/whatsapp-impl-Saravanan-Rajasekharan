@@ -30,6 +30,7 @@ public class WhatsappRepository {
         this.messageId = 0;
     }
 
+    // Create User
 
     public String createUser(String name, String mobile) throws Exception {
         if(userMobile.contains(mobile)){
@@ -43,6 +44,8 @@ public class WhatsappRepository {
         return "SUCCESS";
     }
 
+    //Create group
+
     public Group createGroup(List<User> users) {
         Group group = new Group();
         if(users.size()==2){
@@ -52,7 +55,7 @@ public class WhatsappRepository {
 
         }else{
             this.customGroupCount++;
-            String groupName = "Group "+customGroupCount;
+            String groupName = "Group "+ this.customGroupCount;
             group.setName(groupName);
             groupUserMap.put(group,users);
         }
@@ -61,6 +64,8 @@ public class WhatsappRepository {
         return group;
     }
 
+    //Create Message
+
     public int createMessage(String content) {
         this.messageId++;
         Message message = new Message(messageId,content,new Date());
@@ -68,22 +73,35 @@ public class WhatsappRepository {
         return this.messageId;
     }
 
+    //Send Message
+
     public int sendMessage(Message message, User sender, Group group) throws Exception {
 
         if(!groupUserMap.containsKey(group)){
             throw new Exception("Group does not exist");
         }
-        List<User> userlist = groupUserMap.get(group);
-        if(!userlist.contains(sender)){
+        if(!this.userInGroup(group, sender)) {
             throw new Exception("You are not allowed to send message");
         }
 
-        List<Message> messageList = groupMessageMap.get(group);
-        messageList.add(message);
+        List<Message> messageList = new ArrayList<>();
+          if(groupMessageMap.containsKey(group)) messageList = groupMessageMap.get(group);
+
+          messageList.add(message);
         groupMessageMap.put(group,messageList);
 
-        return groupMessageMap.get(group).size();
+        return messageList.size();
     }
+
+    private boolean userInGroup(Group group, User sender) {
+        List<User> users = groupUserMap.get(group);
+        for(User user: users) {
+            if(user.equals(sender)) return true;
+        }
+        return false;
+    }
+
+    //Change Admin
 
     public String changeAdmin(User approver, User user, Group group) throws Exception {
         if(!groupUserMap.containsKey(group)){
@@ -108,12 +126,10 @@ public class WhatsappRepository {
     }
 
     public int removeUser(User user) {
-
         return 0;
     }
 
     public String findMessage(Date start, Date end, int k) {
-
         return " ";
     }
 }
