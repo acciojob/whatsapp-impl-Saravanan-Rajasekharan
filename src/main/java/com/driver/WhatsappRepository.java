@@ -47,21 +47,22 @@ public class WhatsappRepository {
     //Create group
 
     public Group createGroup(List<User> users) {
-        Group group = new Group();
-        if(users.size()==2){
-            User secondUser = users.get(1);
-            String secondName = secondUser.getName();
-            group.setName(secondName);
+        if(users.size() == 2) return this.createPersonalChat(users);
 
-        }else{
-            this.customGroupCount++;
-            String groupName = "Group "+ this.customGroupCount;
-            group.setName(groupName);
-            groupUserMap.put(group,users);
-        }
-        adminMap.put(group,users.get(0));
-
+        this.customGroupCount++;
+        String groupName = "Group " + this.customGroupCount;
+        Group group = new Group(groupName, users.size());
+        groupUserMap.put(group, users);
+        adminMap.put(group, users.get(0));
         return group;
+
+    }
+
+    private Group createPersonalChat(List<User> users) {
+        String groupName = users.get(1).getName();
+        Group personalGroup = new Group(groupName, 2);
+        groupUserMap.put(personalGroup, users);
+        return personalGroup;
     }
 
     //Create Message
@@ -77,17 +78,13 @@ public class WhatsappRepository {
 
     public int sendMessage(Message message, User sender, Group group) throws Exception {
 
-        if(!groupUserMap.containsKey(group)){
-            throw new Exception("Group does not exist");
-        }
-        if(!this.userInGroup(group, sender)) {
-            throw new Exception("You are not allowed to send message");
-        }
+        if(!groupUserMap.containsKey(group))throw new Exception("Group does not exist");
+        if(!this.userInGroup(group, sender)) throw new Exception("You are not allowed to send message");
 
         List<Message> messageList = new ArrayList<>();
-          if(groupMessageMap.containsKey(group)) messageList = groupMessageMap.get(group);
+        if(groupMessageMap.containsKey(group)) messageList = groupMessageMap.get(group);
 
-          messageList.add(message);
+        messageList.add(message);
         groupMessageMap.put(group,messageList);
 
         return messageList.size();
@@ -116,11 +113,11 @@ public class WhatsappRepository {
         }
 
         adminMap.put(group,user);
-        int index= userlist.indexOf(user);
-        userlist.set(index,approver);
-        userlist.set(0,user);
-
-        groupUserMap.put(group,userlist);
+    //        int index= userlist.indexOf(user);
+    //        userlist.set(index,approver);
+    //        userlist.set(0,user);
+    //
+    //        groupUserMap.put(group,userlist);
 
         return "SUCCESS";
     }
